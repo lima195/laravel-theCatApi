@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Ixudra\Curl\Facades\Curl;
 use App\Http\Requests\ListCatsRequest;
+use App\Http\Requests\SearchCatsRequest;
+use Illuminate\Support\Facades\Cache;
 
 class CatController extends Controller
 {
@@ -30,21 +32,63 @@ class CatController extends Controller
 		$page 			= ($request->page ? $request->page : self::DEFAULT_PAGE);
 		$limit 			= ($request->limit ? $request->limit : self::DEFAULT_LIMIT);
 
-		$response = Curl::to(self::CAT_API . self::BREEDS_ENDPOINT)
-						->withData([
-							'attach_breed' => $attach_breed,
-							'page' => $page,
-							'limit' => $limit,
-						])
-						->withHeader("x-api-key: {$this->_catToken}")
-						->asJson()
-						->get();
+		$cacheKey = 'list_' . $attach_breed . '_' . $page . '_' . $limit;
 
-		if(isset($response->status) && isset($response->message)) {
-			return response()->json(['error' => $response->message], $response->status);
+		/* Check if cache exists */
+		if (Cache::has($cacheKey)) {
+			/* Cache exists, so retrive data from cache */
+			$response = Cache::get($cacheKey);
 		} else {
-			return response()->json(['data' => $response], 200);
+			/* Cache do not exists, continue to get list from cat api */
+			$response = Curl::to(self::CAT_API . self::BREEDS_ENDPOINT)
+							->withData([
+								'attach_breed' => $attach_breed,
+								'page' => $page,
+								'limit' => $limit,
+							])
+							->withHeader("x-api-key: {$this->_catToken}")
+							->asJson()
+							->get();
+
+			if(isset($response->status) && isset($response->message)) {
+				return response()->json(['error' => $response->message], $response->status);
+			} else {
+				/* Storage response in cache, so next time that we get this request, retrive from cache */
+				Cache::put($cacheKey, $response, 360);
+			}
 		}
+
+		return response()->json(['data' => $response], 200);
+	}
+
+	public function search(SearchCatsRequest $request)
+	{
+		$breed_name = ($request->breed_name ? $request->breed_name : 0);
+
+		$cacheKey = 'search_' . urlencode($breed_name);
+
+		/* Check if cache exists */
+		if (Cache::has($cacheKey)) {
+			/* Cache exists, so retrive data from cache */
+			$response = Cache::get($cacheKey);
+		} else {
+			/* Cache do not exists, continue to get breed from cat api */
+			$response = Curl::to(self::CAT_API . self::BREEDS_ENDPOINT . 'search')
+							->withData([
+								'q' => $breed_name,
+							])
+							->withHeader("x-api-key: {$this->_catToken}")
+							->asJson()
+							->get();
+			if(isset($response->status) && isset($response->message)) {
+				return response()->json(['error' => $response->message], $response->status);
+			} else {
+				/* Storage response in cache, so next time that we get this request, retrive from cache */
+				Cache::put($cacheKey, $response, 360);
+			}
+		}
+
+		return response()->json(['data' => $response], 200);
 	}
 
 	public function setCatToken(Request $request)

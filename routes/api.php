@@ -41,6 +41,7 @@ Route::group([
 ], function ($router) {
 
     Route::get('list', 'CatController@list');
+    Route::get('search', 'CatController@search');
     Route::post('set_cat_token', 'CatController@setCatToken');
 
 });
