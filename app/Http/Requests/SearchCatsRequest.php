@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class SearchCatsRequest extends FormRequest
 {
@@ -26,5 +28,9 @@ class SearchCatsRequest extends FormRequest
         return [
             'breed_name' => 'required|string|min:6|max:256',
         ];
+    }
+
+    protected function failedValidation(Validator $validator) {
+        throw new HttpResponseException(response()->json($validator->errors(), 422));
     }
 }
