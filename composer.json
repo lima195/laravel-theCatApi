@@ -12,6 +12,7 @@
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^1.0",
         "guzzlehttp/guzzle": "^6.3",
+        "ixudra/curl": "^6.19",
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
         "tymon/jwt-auth": "^1.0"
