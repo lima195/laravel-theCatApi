@@ -32,3 +32,15 @@ Route::group([
     Route::post('me', 'AuthController@me');
 
 });
+
+Route::group([
+
+    'middleware' => 'api',
+    'prefix' => 'cat'
+
+], function ($router) {
+
+    Route::get('list', 'CatController@list');
+    Route::post('set_cat_token', 'CatController@setCatToken');
+
+});

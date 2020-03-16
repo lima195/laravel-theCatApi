@@ -28,7 +28,7 @@ class AuthController extends Controller
      */
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $credentials = request(['email', 'password', 'cat_token']);
 
         if (! $token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -44,9 +44,10 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $user = new \App\User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
+        $user->name         = $request->name;
+        $user->email        = $request->email;
+        $user->cat_token    = $request->cat_token;
+        $user->password     = bcrypt($request->password);
         $user->save();
 
         if ($this->loginAfterSignUp) {
@@ -101,9 +102,10 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'access_token'  => $token,
+            'token_type'    => 'bearer',
+            'expires_in'    => auth()->factory()->getTTL() * 60,
+            'cat_token'     => auth()->user()->cat_token,
         ]);
     }
 }
