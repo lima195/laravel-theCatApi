@@ -24,7 +24,7 @@ class CatController extends Controller
 		$this->_catToken = $user->cat_token;
 	}
 
-	public function list(Request $request)
+	public function list(ListCatsRequest $request)
 	{
 		$attach_breed 	= ($request->attach_breed ? $request->attach_breed : 0);
 		$page 			= ($request->page ? $request->page : self::DEFAULT_PAGE);
